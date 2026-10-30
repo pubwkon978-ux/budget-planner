@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "157760808012",
+    "project_id": "budget-planer-54984",
+    "storage_bucket": "budget-planer-54984.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:157760808012:android:737dfff84ac758885b00e9",
+        "android_client_info": {
+          "package_name": "com.dilum.budgetplanner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "157760808012-r77p70ngiq67cvlorepg4bhkt1idofnk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dilum.budgetplanner",
+            "certificate_hash": "8dc391e580a288a5859ef6a9046b433cdc1e5099"
+          }
+        },
+        {
+          "client_id": "157760808012-c6b0b5jdthi1f6omnp68krsnd3fju010.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSOvnl49Y4zJ9uaMT6kppT2ksXek6T3WU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "157760808012-c6b0b5jdthi1f6omnp68krsnd3fju010.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
