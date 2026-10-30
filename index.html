@@ -332,6 +332,7 @@ html.desk #toast{z-index:50}
 #dk .th{gap:4px}#dk .th button{min-width:0;padding:8px 0;font-size:10.5px}#dk .th i{width:24px;height:24px}
 #dk #app{min-width:900px}
 html.desk,html.desk body{overflow-x:auto}
+#mb{position:relative}#mb.dot::after{content:"";position:absolute;top:5px;right:5px;width:10px;height:10px;border-radius:50%;background:#ff3d9a;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
 </style></head><body>
 <div class="bg"><i></i><i></i><i></i><i></i></div>
 <header class="glass" id="hd" hidden><button class="ib" id="mb" aria-label="Menu">☰</button><b>Budget Planner</b></header>
@@ -340,7 +341,7 @@ html.desk,html.desk body{overflow-x:auto}
 <div id="dk" hidden><div id="off">Offline – showing saved data, changes can't be saved</div>
 <div id="app"><aside class="side glass"><div class="logo">👛 Budget Planner</div>
 <div class="yr"><button class="ib" data-a="y-" aria-label="Previous year">‹</button><b id="ylab"></b><button class="ib" data-a="y+" aria-label="Next year">›</button></div>
-<button class="nav" data-a="year" id="nv-home">🏠 All months</button><button class="nav" data-a="lists">⚙ Manage lists</button><button class="nav" data-a="sched">📅 Schedule your expense</button><button class="nav" data-a="accs">🏦 Your savings</button><button class="nav" data-a="guide">📖 How to use</button><button class="nav getapp" data-a="getapp">📲 Get app</button>
+<button class="nav" data-a="year" id="nv-home">🏠 All months</button><button class="nav" data-a="lists">⚙ Manage lists</button><button class="nav" data-a="sched">📅 Schedule your expense</button><button class="nav" data-a="accs">🏦 Your savings</button><button class="nav" data-a="guide">📖 How to use</button><button class="nav getapp" data-a="getapp">📲 Get app</button><button class="nav updbtn" data-a="update" style="display:none">🆕 New update available</button>
 <button class="nav" data-a="refresh">⟳ Refresh</button><button class="nav" data-a="full">⛶ Full screen</button>
 <div class="th" id="th"></div>
 <button class="swrow" data-a="tomobile" role="switch" aria-checked="true"><span>🖥 Desktop view</span><i class="sw"></i></button>
@@ -420,6 +421,29 @@ function getApp(){
   const a=document.createElement('a');a.href=u;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
   toast('Downloading app…');
 }
+/* ---------- Live update (Android app only): new site version -> button in side panel -> app updates itself ---------- */
+let UPD=null,updating=false;
+function showUpd(){const b=document.querySelector('#dk .updbtn');if(b)b.style.display=UPD?'':'none';const m=$('#mb');if(m)m.classList.toggle('dot',!!UPD)}
+async function checkUpdate(){
+  if(!NATIVE||!navigator.onLine)return;
+  const B=window.__NATIVE__.build;if(!B||!B.repo||!B.n)return;
+  try{
+    const r=await withTimeout(fetch(`https://api.github.com/repos/${B.repo}/releases/tags/apk`,{headers:{Accept:'application/vnd.github+json'}}),8000);
+    if(!r.ok)return;const j=await r.json();
+    const n=+((/Build #(\d+)/.exec(j.body||'')||[])[1]||0),a=(j.assets||[]).find(x=>x.name=='web-bundle.zip');
+    if(n>B.n&&a){UPD={n,url:a.browser_download_url};showUpd()}
+  }catch(e){}
+}
+async function doUpdate(){
+  if(!UPD||updating)return;updating=true;toast('Downloading update…');
+  try{
+    const CU=window.__NATIVE__.updater;
+    const b=await CU.download({url:UPD.url,version:String(UPD.n)});
+    toast('Installing update…');
+    try{await withTimeout(waitForPendingWrites(fs),4000)}catch(e){}
+    await CU.set({id:b.id}); // reloads the app with the new version
+  }catch(e){updating=false;toast('Update failed: '+(e&&e.message||e))}
+}
 const GETAPP=!NATIVE&&!IOS;
 if(!GETAPP)document.querySelectorAll('.getapp').forEach(e=>e.remove());
 
@@ -449,7 +473,7 @@ onAuthStateChanged(auth,async u=>{
   if(!u){applyMode();showLogin();return}
   $('#hd').hidden=false;
   try{await loadLists()}catch(e){$('#view').innerHTML='<div class="glass" style="padding:22px;margin:20px">No saved data on this phone yet.<br>Connect to the internet and open the app once.</div>';return}
-  warm();
+  warm();checkUpdate();
   try{const n=await runSchedules();if(n)setTimeout(()=>toast(n+' scheduled expense'+(n>1?'s':'')+' added'),600)}catch(e){}applyMode();
   if(DESK)DK.show();else showYear();
 });
@@ -533,6 +557,7 @@ document.addEventListener('change',async e=>{if(e.target.closest('#dk'))return;i
 const OG=new Set();
 function drawer(){
   $('#drawer').innerHTML=`<div class="dh"><h2>Manage lists</h2><button class="ib back" data-a="back" aria-label="Close menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 5l-7 7 7 7"/></svg></button></div><div class="user">${esc(U?.email||'')}</div>
+  ${UPD?'<button class="btn pink" data-a="update" style="margin:0 0 12px">🆕 New update available</button>':''}
   <button class="swrow" data-a="desk" role="switch" aria-checked="false"><span>🖥 Desktop view</span><i class="sw"></i></button>
   <button class="btn alt" data-a="sched" style="margin:0 0 12px">📅 Schedule your expense</button>
   <button class="btn alt" data-a="accs" style="margin:0 0 12px">🏦 Your savings</button>
@@ -563,6 +588,7 @@ document.addEventListener('click',async e=>{
   if(a=='accs'){tog(false);return openAcc()}
   if(a=='guide'){location.href='guide.html';return}
   if(a=='getapp'){tog(false);return getApp()}
+  if(a=='update'){tog(false);return doUpdate()}
   if(a=='theme'){applyTheme(D.t);return drawer()}
   if(a=='logout'){tog(false);await signOut(auth);return}
   if(a=='y-'){Y--;return showYear()} if(a=='y+'){Y++;return showYear()}
@@ -745,6 +771,7 @@ root.addEventListener('click',async ev=>{const b=ev.target.closest('[data-a]');i
   if(a=='accs')return openAcc();
   if(a=='guide'){location.href='guide.html';return}
   if(a=='getapp')return getApp();
+  if(a=='update')return doUpdate();
   if(a=='sedit'){S.SE=true;render();return $d('#sal')?.focus()}
   if(a=='scancel'){S.SE=false;return render()}
   if(a=='sal'){const v=parseFloat($d('#sal').value)||0,y=S.Y,m=S.M;S.SE=false;return write(async()=>{await setDoc(ref("months",y+"_"+m),{y,m,salary:v});try{await runSchedules()}catch(e){}},'Salary saved')}
@@ -966,7 +993,7 @@ if(!NATIVE&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js
 if(NATIVE){
   const o=$('#off');if(o)o.textContent='Offline – changes are saved on this phone and will sync automatically';
   window.addEventListener('offline',()=>toast('Offline – data is saved on this phone'));
-  window.addEventListener('online',()=>{toast('Back online – syncing…');warm();
+  window.addEventListener('online',()=>{toast('Back online – syncing…');warm();checkUpdate();
     waitForPendingWrites(fs).then(()=>{toast('All changes synced ✓');if(U)refreshView()}).catch(()=>{})});
 }
 </script></body></html>
