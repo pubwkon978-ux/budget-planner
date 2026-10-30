@@ -1,0 +1,15 @@
+{
+  "appId": "com.dilum.budgetplanner",
+  "appName": "Budget Planner",
+  "webDir": "dist",
+  "backgroundColor": "#1b1038",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": ["google.com"]
+    }
+  }
+}

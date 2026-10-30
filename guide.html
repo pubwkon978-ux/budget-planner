@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="si"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Budget Planner – භාවිතා කරන ආකාරය</title>
+<meta name="theme-color" content="#1b1038">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#fff;--mute:rgba(255,255,255,.72);--glass:rgba(255,255,255,.1);--line:rgba(255,255,255,.22);--g1:#3ff2a5;--g2:#5ab0ff;--p1:#ff6bb5;--p2:#ff9a6b}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:12px}
+body{margin:0;color:var(--ink);font:16px/1.75 "Noto Sans Sinhala",system-ui,-apple-system,"Segoe UI",sans-serif;background-color:#1b1038;background-image:radial-gradient(60vmax 60vmax at 0% 0%,#ff3d9a55,transparent 60%),radial-gradient(60vmax 60vmax at 100% 30%,#22d3ee40,transparent 60%),radial-gradient(60vmax 60vmax at 20% 100%,#8b5cf655,transparent 60%);background-attachment:fixed;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.w{max-width:980px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;gap:12px;margin:4px 0 18px}
+.back{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:14px;border:1px solid var(--line);background:var(--glass);color:var(--ink);font-weight:600;text-decoration:none;white-space:nowrap}
+.top img{width:44px;height:44px;border-radius:12px}
+h1{font-size:clamp(26px,5vw,38px);line-height:1.25;margin:0 0 8px;font-weight:800}
+h2{font-size:clamp(20px,3.4vw,25px);margin:0 0 6px;font-weight:800;line-height:1.35}
+p{margin:0 0 10px;color:var(--mute)} b,strong{color:var(--ink)}
+.card{border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:24px;padding:20px;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.lead{font-size:18px}
+.quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px;counter-reset:q;padding:0;list-style:none}
+.quick li{counter-increment:q;padding:12px 14px 12px 50px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid var(--line);position:relative;color:var(--ink)}
+.quick li:before{content:counter(q);position:absolute;left:12px;top:12px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#10243a;background:linear-gradient(135deg,var(--g1),var(--g2))}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.toc a{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--glass);color:var(--ink);text-decoration:none;font-size:14px;font-weight:600}
+.sec{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
+@media(min-width:780px){.sec{grid-template-columns:minmax(0,1fr) 290px}.sec.rev{grid-template-columns:290px minmax(0,1fr)}.sec.rev .shots{order:-1}}
+.shots{display:grid;gap:14px;justify-items:center}
+.shots figure{margin:0;width:100%;max-width:290px}
+.shots img{width:100%;height:auto;display:block;border-radius:22px;border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+figcaption{font-size:13px;color:var(--mute);text-align:center;margin-top:6px}
+.wide{max-width:none!important}.wide img{border-radius:14px}
+ol.st,ul.pt{margin:8px 0 0;padding-left:22px;color:var(--mute)}
+ol.st li,ul.pt li{margin-bottom:6px;padding-left:4px}
+ol.st li::marker{color:var(--g1);font-weight:800}
+.tag{display:inline-block;padding:1px 10px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;white-space:nowrap}
+.tip{margin-top:12px;padding:12px 14px;border-radius:14px;border-left:4px solid var(--g1);background:rgba(63,242,165,.1);color:var(--ink);font-size:15px}
+.warn{border-left-color:var(--p1);background:rgba(255,107,181,.12)}
+.ex{margin-top:10px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.22);font-size:15px;color:var(--ink)}
+details{border-top:1px solid var(--line);padding:10px 0}details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:600;color:var(--ink)}details p{margin:8px 0 0}
+.tail{text-align:center;color:var(--mute);font-size:14px;padding:8px 0 28px}
+</style></head><body><div class="w">
+
+<div class="top"><a class="back" href="index.html">← App එකට</a><img src="icon-192.png" alt=""><div style="font-weight:800;font-size:18px">Budget Planner</div></div>
+
+<div class="card">
+<h1>Budget Planner භාවිතා කරන ආකාරය</h1>
+<p class="lead">මේ app එකෙන් ඔයාට මාසයක salary එක enter කරල, ඒකෙන් කොච්චර වියදම් වුණාද, කොච්චර ඉතුරුද කියලා ඉතා පහසුවෙන් බලාගන්න පුලුවන්. දැනටමත් වියදම් plan කරන්න අත්දැකීමක් නැතිවුණත් කමක් නෑ, පියවරෙන් පියවර මෙතන තියෙනවා.</p>
+<ol class="quick">
+<li><b>Google</b> එකෙන් login වෙන්න</li>
+<li>මාසයක් තෝරලා <b>salary</b> එක ඇතුලත් කරන්න</li>
+<li>වියදම් ටික <b>Add expense</b> එකෙන් දාන්න</li>
+<li>ඉතුරු ගාන <b>Left</b> එකෙන් බලන්න</li>
+</ol></div>
+
+<nav class="toc">
+<a href="#s1">Login</a><a href="#s2">මාසයක් තෝරන්න</a><a href="#s3">Salary</a><a href="#s4">වියදම් දාන්න</a><a href="#s5">වියදම් list එක</a><a href="#s6">Side panel</a><a href="#s7">Categories</a><a href="#s8">Schedule</a><a href="#s9">Bank &amp; Credit card</a><a href="#s10">Desktop view</a><a href="#faq">ප්‍රශ්න</a></nav>
+
+<section class="card sec" id="s1"><div><h2>1. Login වෙන්න</h2>
+<p>App එක open කරපු ගමන් <span class="tag">Continue with Google</span> බටන් එක එනවා. ඒක click කරාම ඔයාගේ Gmail account එක තෝරන්න පුලුවන්.</p>
+<ul class="pt"><li>ඔයාගේ දත්ත ඔයාගේ account එකට විතරක් සම්බන්ධයි. phone එකෙන් වුණත් PC එකෙන් වුණත් එකම Gmail එකෙන් login වුණොත් එකම දත්ත පෙනෙනවා.</li><li>Logout වෙලා ආයෙත් login වෙද්දී වෙන Gmail එකක් තෝරගන්නත් පුලුවන්.</li></ul></div>
+<div class="shots"><figure><img src="guide/01-login.jpg" alt="Login screen" loading="lazy"></figure></div></section>
+
+<section class="card sec rev" id="s2"><div><h2>2. මාසයක් තෝරන්න</h2>
+<p>Login වුණාම අවුරුද්දේ මාස 12 පෙනෙනවා. හැම මාසයකම <b>Salary</b>, <b>Spent</b> (වියදම්) සහ <b>Left</b> (ඉතුරු) ගාන පොඩි බාර් එකක් එක්ක පෙන්නනවා. යන්න ඕන මාසය click කරාම ඒ මාසයේ දත්ත open වෙනවා.</p>
+<ul class="pt"><li>උඩ <span class="tag">‹</span> <span class="tag">›</span> වලින් අවුරුද්ද මාරු කරන්න පුලුවන්.</li><li>දැන් ඉන්න මාසය වෙනම පාටින් පෙනෙනවා.</li></ul></div>
+<div class="shots"><figure><img src="guide/02-year.jpg" alt="Year view" loading="lazy"></figure></div></section>
+
+<section class="card sec" id="s3"><div><h2>3. Salary එක ඇතුලත් කරන්න</h2>
+<p>තෝරපු මාසයේ මුලින්ම කරන්න ඕන ඒ මාසයේ salary එක ලියන එකයි.</p>
+<ol class="st"><li><span class="tag">Salary for … (Rs.)</span> කොටුවේ salary ගාන ලියන්න.</li><li><span class="tag">Save salary</span> click කරාම salary card එකක් විදියට පෙනෙනවා.</li><li>වැරදුණොත් card එකේ උඩ දකුණු කෙළවරේ ✎ click කරාම ආයෙ වෙනස් කරන්න පුලුවන්.</li></ol>
+<div class="tip">Salary එක දාන තෙක් <b>Schedule</b> කරපු වියදම් ඒ මාසයට add වෙන්නේ නෑ. ඒ නිසා මාසෙ මුලම Salary එක ඇතුලත් කරන්න.</div></div>
+<div class="shots"><figure><img src="guide/03-salary.jpg" alt="Salary entry" loading="lazy"></figure></div></section>
+
+<section class="card sec rev" id="s4"><div><h2>4. වියදම් එකතු කරන්න</h2>
+<p><span class="tag">＋ Add expense</span> click කරාම form එක open වෙනවා.</p>
+<ol class="st"><li><b>Category</b>: වියදම කොයි වර්ගයද (Bills, Food, Transport...).</li><li><b>Item</b>: ඒ category එකේ list එකෙන් තෝරන්න. list එකේ නැත්නම් <span class="tag">Type my own…</span> වලින් ඔයාටම නමක් ලියන්න.</li><li><b>Amount</b>: ගාන.</li><li><b>Wallet</b>: මුදල් ගෙවන්නේ කොහෙන්ද. සාමාන්‍යයෙන් <span class="tag">💰 Salary</span>. Bank account එකකින් හෝ credit card එකකින් ගෙව්වා නම් ඒක තෝරන්න (පහළ <a href="#s9" style="color:var(--g1)">Bank &amp; Credit card</a> කොටස බලන්න).</li><li><b>Date</b> සහ <b>Note</b> (අවශ්‍ය නම් විතරක්), ඊට පස්සේ <span class="tag">Add expense</span>.</li></ol>
+<div class="tip">ඒ මාසයේ Salary, Spent, Left ගාන සහ category අනුව donut chart එක Automatically update වෙනවා.</div></div>
+<div class="shots"><figure><img src="guide/05-summary.jpg" alt="Summary and chart" loading="lazy"><figcaption>Spent, Left සහ chart එක</figcaption></figure><figure><img src="guide/06-add.jpg" alt="Add expense form" loading="lazy"><figcaption>Add expense form එක</figcaption></figure></div></section>
+
+<section class="card sec" id="s5"><div><h2>5. වියදම් list එක (My expenses)</h2>
+<p>දාපු හැම වියදමක්ම category එකක් අනුව වෙන වෙනම card වලින් පෙනෙනවා. හැම card එකකම උඩ ඒ category එකේ මුළු ගාන තියෙනවා.</p>
+<ul class="pt"><li>වැරදි ගාන මත click කරාම අලුත් ගාන ඇතුලත් කරන්න පුලුවන්.</li><li><span class="tag">✕</span> click කරාම වියදම මකනවා. (Bank account එකක් හෝ card එකක් සම්බන්ධ වෙලා තිබුණා නම්, ඒ ගානත් Automatically හරි වෙනවා.)</li></ul></div>
+<div class="shots"><figure><img src="guide/07-list.jpg" alt="Expenses list" loading="lazy"></figure></div></section>
+
+<section class="card sec rev" id="s6"><div><h2>6. Side panel එක</h2>
+<p>උඩ වම් කෙළවරේ <span class="tag">☰</span> click කරාම side panel එක open වෙනවා. මෙතනින්:</p>
+<ul class="pt"><li><b>🖥 Desktop view</b>: PC එකට ගැලපෙන විශාල layout එකට මාරු වෙන්න.</li><li><b>📅 Schedule your expense</b>: හැම මාසෙම යන වියදම් automatically දාන්න.</li><li><b>🏦 Your savings</b>: bank accounts සහ credit cards.</li><li><b>📖 How to use</b>: මේ පිටුව.</li><li><b>Theme</b> හතරකින් ඔයාට ඕන පාටක් තෝරන්න.</li><li>පහළින් category සහ item list, සහ <b>Log out</b>.</li></ul></div>
+<div class="shots"><figure><img src="guide/08-panel.jpg" alt="Side panel" loading="lazy"></figure></div></section>
+
+<section class="card sec" id="s7"><div><h2>7. Categories සහ items හදාගන්න</h2>
+<p>Side panel එකේ පහළ තියෙන හැම category බටන් එකක්ම click කරාම යටට විවෘත වෙනවා. එතන ඔයාට:</p>
+<ul class="pt"><li><b>Item එකක් add කරන්න</b>: <span class="tag">New item</span> කොටුවේ නම ලියලා <span class="tag">Add</span>. ඒක ඊළඟ පාර Add expense එකේ Item dropdown එකේ පෙනෙනවා.</li><li><b>Item එකක් අයින් කරන්න</b>: නම ළඟ ✕.</li><li><b>පාට වෙනස් කරන්න</b>: Colour click කරාම. chart එකේත් ඒ පාටම පෙනෙනවා.</li><li><b>අලුත් category එකක්</b>: පහළම <span class="tag">New category</span> එකෙන් (උදා: Insurance).</li></ul>
+<div class="tip">කලින් දාපු වියදම් අයින් වෙන්නේ නෑ. category/item එකක් මැකුවත් පරණ වියදම් ඒ විදියටම තියෙනවා.</div></div>
+<div class="shots"><figure><img src="guide/09-lists.jpg" alt="Manage lists" loading="lazy"></figure></div></section>
+
+<section class="card sec rev" id="s8"><div><h2>8. හැම මාසෙම යන වියදම් Schedule කරන්න</h2>
+<p>Internet bill එක, loan හිඟ වගේ හැම මාසෙම එකම දවසක යන වියදම් සෑම වතාවෙම manualy enter කරන්න ඕන නෑ.</p>
+<ol class="st"><li>Side panel එකේ <span class="tag">📅 Schedule your expense</span> click කරාම.</li><li><b>From</b> / <b>To</b> වලින් කොයි දවසේ ඉඳන් කොයි දවස වෙනකල්ද කියලා තෝරන්න.</li><li>Category, Item, Amount සහ මාසෙ <b>Pay date</b> එක (කැලැන්ඩරයෙන්) තෝරලා <span class="tag">Save schedule</span>.</li></ol>
+<p>ඒ දවස එනකොට, ඒ මාසයේ salary එක save කරලා නම්, වියදම Automatically ඔයාගේ list එකට add වෙනවා. පහළ ලිස්ට් එකෙන් ඒවා edit හෝ delete කරන්නත් පුලුවන්.</p></div>
+<div class="shots"><figure><img src="guide/10-schedule.jpg" alt="Schedule" loading="lazy"></figure></div></section>
+
+<section class="card sec" id="s9"><div><h2>9. Bank account සහ Credit card</h2>
+<p>Side panel එකේ <span class="tag">🏦 Your savings</span> එකෙන් දෙයාකාරයම add කරන්න පුලුවන්. උඩින් <span class="tag">🏦 Bank account</span> හෝ <span class="tag">💳 Credit card</span> තෝරන්න.</p>
+<h3 style="margin:14px 0 4px;font-size:18px">🏦 Bank account</h3>
+<ul class="pt"><li>බැංකුවේ නම සහ දැනට තියෙන ශේෂය (balance) ඇතුලත් කරන්න.</li><li><b>Savings</b> category එකේ ඒ බැංකුව item එකක් විදියට තෝරලා වියදමක් දැම්මොත් ඒ ගාන salary එකෙන් අඩු වෙලා බැංකුවේ ශේෂයට එකතු වෙනවා (ඉතිරි කිරීම).</li><li>Add expense එකේ <b>Wallet</b> එකට බැංකුව තෝරලා වියදමක් දැම්මොත් ඒ ගාන බැංකුවේ ශේෂයෙන් අඩු වෙනවා, salary එකෙන් නෙවෙයි.</li></ul>
+<h3 style="margin:16px 0 4px;font-size:18px">💳 Credit card</h3>
+<ol class="st"><li><span class="tag">💳 Credit card</span> තෝරලා card එකේ නම, දැනට ගෙවන්න තියෙන ගාන (<b>Amount owed</b>) සහ ඕන නම <b>Credit limit</b> එක ඇතුලත් කරලා save කරන්න.</li><li><b>Card එකෙන් බඩු ගත්තම</b>: Add expense එකේ Wallet එකට ඒ card එක තෝරන්න. එතකොට salary එකෙන් අඩු වෙන්නේ නෑ, card එකේ <b>Owed</b> ගාන වැඩි වෙනවා.</li><li><b>Card එකට සල්ලි ගෙවද්දී</b>: Category එක <b>Loans</b> කියන එක තෝරන්න. Item dropdown එකේ ඔයාගේ card එක <span class="tag">💳 card නම</span> විදියට automatically එනවා. ඒක තෝරලා ගාන ඇතුලත් කරන්න. ඒ ගාන <b>salary එකෙන් අඩු වෙලා</b> card එකේ Owed ගානෙන් අඩු වෙනවා.</li></ol>
+<div class="ex"><b>උදාහරණයක්:</b> Visa card එකෙන් Rs. 8,000 ක බඩු ගත්තා → Owed 8,000 වෙනවා. මාසෙ අන්තිමේ Loans › 💳 Visa එකට Rs. 5,000 ගෙව්වා → salary එකෙන් 5,000 අඩු වෙනවා, Owed 3,000 ට අඩු වෙනවා.</div>
+<div class="tip warn">Credit limit එකක් දැම්මොත් ඒක ඉක්මවන වියදමක් card එකට දාන්න දෙන්නේ නෑ. Card එක සහ bank account එක month view එකේ salary card එකට යටින් පෙනෙනවා.</div></div>
+<div class="shots"><figure><img src="guide/11-card.jpg" alt="Credit card add" loading="lazy"></figure><figure><img src="guide/04-month.jpg" alt="Month view with cards" loading="lazy"><figcaption>Salary card එකට යටින් Bank සහ Card</figcaption></figure></div></section>
+
+<section class="card" id="s10"><h2>10. Desktop view (PC එකට)</h2>
+<p>Side panel එකේ <span class="tag">🖥 Desktop view</span> switch එක on කළාම විශාල තිරයට ගැලපෙන layout එකක් එනවා. වම්පස menu එක, අවුරුද්ද පුරා salary vs spent chart එක, category සහ දවස අනුව chart වගේ දේවල් එකවර පෙනෙනවා. ආපහු phone layout එකට යන්න වම් පහළ switch එක off කරන්න.</p>
+<div class="shots" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"><figure class="wide"><img src="guide/12-desktop-year.jpg" alt="Desktop year" loading="lazy"></figure><figure class="wide"><img src="guide/13-desktop-month.jpg" alt="Desktop month" loading="lazy"></figure></div>
+<ul class="pt"><li>Search කොටුවෙන් වියදම් හොයන්න (<span class="tag">/</span> key එක එබුවොත් කෙලින්ම search කොටුවට යනවා).</li><li><span class="tag">←</span> <span class="tag">→</span> keys වලින් මාස මාරු කරන්න පුලුවන්.</li></ul></section>
+
+<section class="card" id="faq"><h2>නිතර අහන ප්‍රශ්න</h2>
+<details><summary>වැරදි ගාන ගැහුවා, මොකද කරන්නේ?</summary><p>Phone එකේ නම් ඒ ගාන මත click කරාම අලුත් ගාන ඇතුලත් කරන්න පුලුවන්. Desktop view එකේ ✎ click කරාම category, item, ගාන, දිනය සියල්ලම වෙනස් කරන්න පුලුවන්. නැත්නම් ✕ එකෙන් මකලා ආයෙ දාන්න.</p></details>
+<details><summary>Salary එක වෙනස් වුණා නම්?</summary><p>Salary card එකේ ✎ click කරාම ආයෙ ගාන ඇතුලත් කරල save කරන්න පුලුවන්.</p></details>
+<details><summary>Internet නැතුව පාවිච්චි කරන්න පුලුවන්ද?</summary><p>අලුත් දත්ත save වෙන්න internet ඕන. Internet නැති වෙලාවට app එක ඇරුණාට දත්ත save වෙන්නේ නෑ, ඒ නිසා ගැහුවට පස්සේ "saved" කියලා පෙනෙනවද බලන්න.</p></details>
+<details><summary>Phone එකේ home screen එකට app එක දාගන්නේ කොහොමද?</summary><p>Browser එකේ menu එකෙන් <b>Add to Home screen</b> (iPhone එකේ නම් Share › Add to Home Screen) තෝරන්න. එතකොට සාමාන්‍ය app එකක් වගේ open වෙනවා.</p></details>
+<details><summary>Theme එක වෙනස් කරන්නේ?</summary><p>Side panel එකේ තියෙන Purple, White, Black &amp; Green, Dark කියන ඒවායින් එකක් click කරාම ඒ ගමන්ම වෙනස් වෙනවා.</p></details>
+<details><summary>Bank/Card එකක් මකන්න පුලුවන්ද?</summary><p>Your savings panel එකේ ඒ එක ඉස්සරහා ✕ click කරාම මැකෙනවා. කලින් දාපු වියදම් list එකේම තියෙනවා.</p></details></section>
+
+<div class="tail">Budget Planner · ප්‍රශ්න තිබුණොත් ආයෙත් මේ පිටුවට එන්න 📖</div>
+</div></body></html>
