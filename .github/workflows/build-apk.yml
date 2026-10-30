@@ -85,11 +85,15 @@ jobs:
           grep -i "SHA-1\|SHA-256" cert.txt | sed 's/^/- /' >> "$GITHUB_STEP_SUMMARY"
           rm -f "$RUNNER_TEMP/budget.jks"
 
+      - name: Zip web bundle for live updates
+        run: cd dist && zip -qr ../web-bundle.zip .
+
       - name: Publish to GitHub Release (tag "apk")
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view apk >/dev/null 2>&1 || gh release create apk --title "Budget Planner (Android)" --notes "Latest Android build" --latest=false
-          gh release upload apk budget-planner.apk --clobber
+          gh release upload apk budget-planner.apk web-bundle.zip --clobber
+          # notes are edited LAST: the app only sees a new build once both files are uploaded
           gh release edit apk --notes "Build #${{ github.run_number }} - ${GITHUB_SHA::7}"
           echo "APK: https://github.com/${{ github.repository }}/releases/download/apk/budget-planner.apk" >> "$GITHUB_STEP_SUMMARY"
