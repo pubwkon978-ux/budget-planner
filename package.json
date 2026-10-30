@@ -7,10 +7,11 @@
     "build:native": "node scripts/build-native.mjs"
   },
   "dependencies": {
+    "@capacitor-firebase/authentication": "^8.5.2",
     "@capacitor/android": "^8.6.0",
     "@capacitor/cli": "^8.6.0",
     "@capacitor/core": "^8.6.0",
-    "@capacitor-firebase/authentication": "^8.5.2",
+    "@capgo/capacitor-updater": "^8.54.0",
     "firebase": "^12.6.0"
   },
   "devDependencies": {
