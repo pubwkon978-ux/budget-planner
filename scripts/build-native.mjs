@@ -23,10 +23,14 @@ let code = m[1];
 code = code.replace(/https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-([a-z-]+)\.js/g, 'firebase/$1');
 
 // 3) native prelude: runs before the app code, exposes the native bits on window
+const build_ = { n: parseInt(process.env.GITHUB_RUN_NUMBER || '0', 10), repo: process.env.GITHUB_REPOSITORY || '' };
 const prelude = `
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
-window.__NATIVE__ = { isNative: Capacitor.isNativePlatform(), auth: FirebaseAuthentication };
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
+window.__NATIVE__ = { isNative: Capacitor.isNativePlatform(), auth: FirebaseAuthentication, updater: CapacitorUpdater, build: ${JSON.stringify(build_)} };
+// tells the updater this bundle started fine (otherwise a broken live update rolls back automatically)
+try { CapacitorUpdater.notifyAppReady(); } catch (e) {}
 `;
 writeFileSync('.native-entry.mjs', prelude + '\n' + code);
 
