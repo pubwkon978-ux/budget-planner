@@ -123,7 +123,7 @@ option{background:var(--optbg);color:var(--ink)}
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:9}
 #drawer{position:fixed;left:0;top:0;bottom:0;width:min(340px,90vw);z-index:10;transform:translateX(-102%);transition:transform .22s;overflow:auto;padding:calc(16px + env(safe-area-inset-top)) 16px 24px;border-radius:0 22px 22px 0;background:var(--drawer)}
 body.open #drawer{transform:none}body.open #scrim{display:block}
-#drawer .lo{position:sticky;bottom:0;margin:16px -16px -24px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--drawer);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid rgba(128,128,128,.25)}
+#drawer .lo{margin:18px 0 calc(8px + env(safe-area-inset-bottom))}
 .grp{border:1px solid var(--line);border-radius:16px;padding:12px;margin:12px 0;background:var(--grp)}
 .top{display:flex;justify-content:space-between;align-items:center;font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -208,8 +208,12 @@ html.desk body{padding:0}
 body.desk>header,body.desk>main,body.desk #scrim,body.desk #drawer{display:none!important}
 html.desk #toast{z-index:50}
 #dk button{cursor:pointer}
-#dk #app{display:grid;grid-template-columns:240px 1fr;height:100vh}
-#dk .side{margin:12px;padding:16px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+#dk #app{display:block;height:100vh}
+#dk .side{position:fixed;left:calc(12px + env(safe-area-inset-left));top:calc(12px + env(safe-area-inset-top));bottom:12px;width:250px;margin:0;padding:16px;display:flex;flex-direction:column;gap:8px;overflow:auto;z-index:25;transform:translateX(calc(-100% - 40px));transition:transform .24s ease,visibility 0s linear .24s;visibility:hidden}
+body.sideopen #dk .side{transform:none;visibility:visible;transition:transform .24s ease,visibility 0s}
+#dscrim{display:none;position:fixed;inset:0;z-index:24;background:rgba(0,0,0,.5)}
+body.sidepush.sideopen #dk .dmain{margin-left:calc(274px + env(safe-area-inset-left))}
+body.sideopen:not(.sidepush) #dscrim{display:block}
 #dk .logo{font-size:18px;font-weight:800;display:flex;gap:8px;align-items:center;margin-bottom:6px}
 #dk .yr{display:flex;align-items:center;gap:6px;margin:4px 0 8px}
 #dk .yr b{flex:1;text-align:center;font-size:22px}
@@ -217,7 +221,7 @@ html.desk #toast{z-index:50}
 #dk .nav:hover,#dk .nav.on{background:var(--chip);border-color:var(--line)}
 #dk .sp{flex:1}
 #dk .user{font-size:12px;color:var(--mute);word-break:break-all}
-#dk .dmain{overflow:auto;padding:16px 22px 40px;height:100vh}
+#dk .dmain{overflow:auto;padding:calc(16px + env(safe-area-inset-top)) calc(22px + env(safe-area-inset-right)) 40px calc(22px + env(safe-area-inset-left));height:100vh;transition:margin-left .24s ease}
 #dk .ib{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--glass);font-size:20px;display:grid;place-items:center;padding:0}
 #dk .ib:hover{background:var(--chip)}
 #dk .bar2{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -340,6 +344,7 @@ html.desk,html.desk body{overflow-x:auto}
 <main id="view"></main>
 <div id="scrim"></div><aside id="drawer" class="glass"></aside><div id="toast"></div><div id="sch"></div>
 <div id="dk" hidden><div id="off">Offline – showing saved data, changes can't be saved</div>
+<div id="dscrim" data-a="sideclose"></div>
 <div id="app"><aside class="side glass"><div class="logo">👛 Budget Planner</div>
 <div class="yr"><button class="ib" data-a="y-" aria-label="Previous year">‹</button><b id="ylab"></b><button class="ib" data-a="y+" aria-label="Next year">›</button></div>
 <button class="nav" data-a="year" id="nv-home">🏠 All months</button><button class="nav" data-a="lists">⚙ Manage lists</button><button class="nav" data-a="sched">📅 Schedule your expense</button><button class="nav" data-a="accs">🏦 Your savings</button><button class="nav" data-a="guide">📖 How to use</button><button class="nav getapp" data-a="getapp">📲 Get app</button><button class="nav updbtn" data-a="update" style="display:none">🆕 New update available</button>
@@ -700,7 +705,7 @@ function mini(es){const ct=catTotals(es).slice(0,8);
 function yearView(){const now=new Date();
   const rows=MN.map((n,i)=>{const m=i+1,es=monthEnts(m);return{m,n,es,sp:sum(es.filter(e=>!e.acc)),sa:S.sal[m]||0}});
   const tS=rows.reduce((a,r)=>a+r.sa,0),tP=rows.reduce((a,r)=>a+r.sp,0),act=rows.filter(r=>r.sp>0).length;
-  return`<div class="bar2"><h1>${S.Y} overview</h1></div>
+  return`<div class="bar2"><button class="ib" data-a="side" aria-label="Menu">☰</button><h1>${S.Y} overview</h1></div>
   <div class="stats"><div class="glass stat"><span>Total salary</span><b>Rs. ${fmt(tS)}</b></div><div class="glass stat"><span>Total spent</span><b>Rs. ${fmt(tP)}</b></div>
   <div class="glass stat"><span>Left</span><b class="${tS-tP<0?'neg':'pos'}">Rs. ${fmt(tS-tP)}</b></div><div class="glass stat"><span>Average spend / month</span><b>Rs. ${fmt(act?tP/act:0)}</b></div></div>
   <div class="glass card"><h2>Salary vs spent – every month</h2><div class="leg"><span><i style="background:var(--g2)"></i>Salary</span><span><i style="background:var(--p1)"></i>Spent</span><span><i style="background:var(--red)"></i>Spent more than salary</span></div>${yearChart(rows)}</div>
@@ -711,7 +716,7 @@ function monthView(){const m=S.M,es=monthEnts(m),spAll=sum(es),sp=sum(es.filter(
   const dDef=cur?`${S.Y}-${pad(m)}-${pad(now.getDate())}`:`${S.Y}-${pad(m)}-01`;
   const sal=(sa&&!S.SE)?`<div class="glass salcard${lp<20?' low':''}" style="--w:${lp.toFixed(1)}%">${lp>0?'<div class="fill"></div>':''}<button class="ib edit" data-a="sedit">✎</button><div class="sl">${MN[m-1]} salary</div><div class="sv">Rs. ${fmt(sa)}</div><div class="sf">${lp<=0?'Fully spent':fmt(left)+' left · '+lp.toFixed(0)+'%'}</div></div>`
    :`<div class="glass card"><h2>Salary for ${MN[m-1]} (Rs.)</h2><input id="sal" type="number" min="0" step="0.01" value="${sa||''}" placeholder="0.00"><div class="row" style="margin-top:10px"><button class="btn" data-a="sal">Save salary</button>${sa?'<button class="btn alt" data-a="scancel">Cancel</button>':''}</div></div>`;
-  return`<div class="bar2"><button class="ib" data-a="m-">‹</button><h1>${MN[m-1]} ${S.Y}</h1><button class="ib" data-a="m+">›</button><div class="sp"></div>
+  return`<div class="bar2"><button class="ib" data-a="side" aria-label="Menu">☰</button><button class="ib" data-a="m-">‹</button><h1>${MN[m-1]} ${S.Y}</h1><button class="ib" data-a="m+">›</button><div class="sp"></div>
    <button class="btn alt" data-a="year">All months</button></div>
   ${sal}${accCardsHTML()}<div class="stats"><div class="glass stat"><span>Spent</span><b>${fmt(sp)}</b></div><div class="glass stat"><span>Left</span><b class="${left<0?'neg':'pos'}">${fmt(left)}</b></div>
   <div class="glass stat"><span>Expenses</span><b>${es.length}</b></div><div class="glass stat"><span>Average per day</span><b>${fmt(sp/elapsed)}</b></div></div>
@@ -753,8 +758,19 @@ function listsModal(){modal(`<h2>Manage lists</h2><div style="color:var(--mute);
 async function goMonth(m,y=S.Y){S.SE=false;S.q='';S.cat='';S.M=m;if(y!=S.Y){S.Y=y;S.ld=true;render();await refresh(true)}else render()}
 
 /* ----- events ----- */
+/* side panel: slides in/out with the ☰ button (open by default only on wide screens) */
+/* desktop mode forces a 1200px layout width on phones, so judge by the real screen: phones/tablets get an overlay panel that starts closed */
+const wide=()=>Math.min(screen.width,screen.height)>=768&&innerWidth>=1000;
+function sideInit(){let o=false;if(wide()){try{o=localStorage.getItem('bp-side')!=='0'}catch(e){o=true}}document.body.classList.toggle('sidepush',wide());document.body.classList.toggle('sideopen',o)}
+function sideTog(v){const o=v===undefined?!document.body.classList.contains('sideopen'):v;document.body.classList.toggle('sideopen',o);if(wide()){try{localStorage.setItem('bp-side',o?'1':'0')}catch(e){}}}
+let wasWide=wide();
+addEventListener('resize',()=>{if(wide()!=wasWide){wasWide=wide();if(document.body.classList.contains('desk'))sideInit()}});
 const root=$('#dk');
+$('#dscrim').addEventListener('click',()=>sideTog(false));
 root.addEventListener('click',async ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,D=b.dataset;
+  if(a=='side')return sideTog();
+  if(a=='sideclose')return sideTog(false);
+  if(b.closest('.side')&&!wide()&&a!='theme')sideTog(false);
   try{
   if(a=='mclose')return closeModal();
   if(a=='yes'){const r=ASK;ASK=null;closeModal();r&&r(true);return}
@@ -818,8 +834,8 @@ setInterval(()=>{if(isDesk()&&!document.hidden)refresh()},90000);
 
 return{
   refresh:()=>refresh(true),
-  show(){S.ld=true;S.SE=false;S.q='';S.cat='';render();return refresh(true)},
-  hide(){$d('#modal').classList.remove('on');$d('#modal').innerHTML='';if(ASK){ASK(false);ASK=null}$d('#dview').innerHTML='';setOff(false)}
+  show(){sideInit();S.ld=true;S.SE=false;S.q='';S.cat='';render();return refresh(true)},
+  hide(){document.body.classList.remove('sideopen','sidepush');$d('#modal').classList.remove('on');$d('#modal').innerHTML='';if(ASK){ASK(false);ASK=null}$d('#dview').innerHTML='';setOff(false)}
 };
 })();
 
