@@ -347,7 +347,7 @@ html.desk,html.desk body{overflow-x:auto}
 <div id="dscrim" data-a="sideclose"></div>
 <div id="app"><aside class="side glass"><div class="logo">👛 Budget Planner</div>
 <div class="yr"><button class="ib" data-a="y-" aria-label="Previous year">‹</button><b id="ylab"></b><button class="ib" data-a="y+" aria-label="Next year">›</button></div>
-<button class="nav" data-a="year" id="nv-home">🏠 All months</button><button class="nav" data-a="lists">⚙ Manage lists</button><button class="nav" data-a="sched">📅 Schedule your expense</button><button class="nav" data-a="accs">🏦 Your savings</button><button class="nav" data-a="guide">📖 How to use</button><button class="nav getapp" data-a="getapp">📲 Get app</button><button class="nav updbtn" data-a="update" style="display:none">🆕 New update available</button>
+<button class="nav" data-a="year" id="nv-home">🏠 All months</button><button class="nav" data-a="lists">⚙ Manage lists</button><button class="nav" data-a="sched">📅 Schedule your expense</button><button class="nav" data-a="accs">🏦 Your savings</button><button class="nav" data-a="guide">📖 How to use</button><button class="nav getapp" data-a="getapp">📲 Get Andriod App</button><button class="nav updbtn" data-a="update" style="display:none">🆕 New update available</button>
 <button class="nav" data-a="refresh">⟳ Refresh</button><button class="nav" data-a="full">⛶ Full screen</button>
 <div class="th" id="th"></div>
 <button class="swrow" data-a="tomobile" role="switch" aria-checked="true"><span>🖥 Desktop view</span><i class="sw"></i></button>
@@ -414,7 +414,7 @@ async function warm(){
   try{await withTimeout(Promise.all([_getDocs(col("entries")),_getDocs(col("months")),_getDoc(ref("meta","lists"))]),25000)}catch(e){console.warn('cache warm-up',e)}
 }
 
-/* ---------- "Get app" (website only) ---------- */
+/* ---------- "Get Andriod App" (website only) ---------- */
 const APK_URL=""; // optional: put a full link here to override the automatic GitHub release link
 function apkLink(){
   if(APK_URL)return APK_URL;
@@ -574,7 +574,7 @@ function drawer(){
   <button class="btn alt" data-a="sched" style="margin:0 0 12px">📅 Schedule your expense</button>
   <button class="btn alt" data-a="accs" style="margin:0 0 12px">🏦 Your savings</button>
   <button class="btn alt" data-a="guide" style="margin:0 0 12px">📖 How to use</button>
-  ${GETAPP?'<button class="btn alt" data-a="getapp" style="margin:0 0 12px">📲 Get app</button>':''}
+  ${GETAPP?'<button class="btn alt" data-a="getapp" style="margin:0 0 12px">📲 Get Andriod App</button>':''}
   <div class="th">${THEMES.map(t=>`<button data-a="theme" data-t="${t[0]}" class="${document.documentElement.dataset.theme==t[0]?'on':''}"><i style="background:${t[2]}"></i>${t[1]}</button>`).join('')}</div>
   <div style="color:var(--mute);font-size:13px;margin-top:12px">These feed the dropdowns when you add an expense.</div>`+
   L.map((g,gi)=>`<div class="gacc${OG.has(g.name)?' open':''}" data-g="${gi}"><button class="gb" style="--c:${colorOf(g.name)}" data-a="tg" data-g="${gi}" aria-expanded="${OG.has(g.name)}"><span>${esc(g.name)}</span><i>▾</i></button><div class="gbody"><div class="gin"><div class="grp">
