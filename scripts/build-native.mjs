@@ -28,7 +28,8 @@ const prelude = `
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
-window.__NATIVE__ = { isNative: Capacitor.isNativePlatform(), auth: FirebaseAuthentication, updater: CapacitorUpdater, build: ${JSON.stringify(build_)} };
+import { App } from '@capacitor/app';
+window.__NATIVE__ = { isNative: Capacitor.isNativePlatform(), auth: FirebaseAuthentication, updater: CapacitorUpdater, app: App, build: ${JSON.stringify(build_)} };
 // tells the updater this bundle started fine (otherwise a broken live update rolls back automatically)
 try { CapacitorUpdater.notifyAppReady(); } catch (e) {}
 `;
