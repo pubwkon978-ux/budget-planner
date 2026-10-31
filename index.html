@@ -114,6 +114,12 @@ option{background:var(--optbg);color:var(--ink)}
 .er{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line2)}
 .er div{flex:1;min-width:0}.er small{display:block;color:var(--mute)}
 .er .a{font-weight:600;background:none;border:0;padding:4px}
+.er .am{font-weight:600;padding:4px 2px;white-space:nowrap}
+.er .mn{flex:none;width:36px;height:36px;border-radius:50%;border:0;background:none;font-size:22px;line-height:1;color:var(--mute)}
+.er .mn:active{background:var(--glass)}
+#rmenu{display:none;position:fixed;z-index:44;min-width:176px;padding:6px;border-radius:16px;animation:esup .14s ease}#rmenu.on{display:block}
+#rmenu button{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 14px;border-radius:11px;font-size:15px}
+#rmenu button:active{background:var(--glass)}#rmenu .dn{color:var(--red,#ff6b6b)}
 .dchart{width:100%;height:auto;display:block}.dgl{stroke:var(--line2);stroke-width:1}.dtx{fill:var(--mute);font-size:9px}
 .dbar{fill:#5ab0ff;transform-box:fill-box;transform-origin:50% 100%;animation:grow .5s cubic-bezier(.2,.8,.2,1) both}.dbar.td{fill:var(--p1,#ff6fb5)}
 .dyinfo{font-size:13px;color:var(--mute);margin:-4px 0 6px}
@@ -351,7 +357,7 @@ html.desk,html.desk body{overflow-x:auto}
 <div class="bg"><i></i><i></i><i></i><i></i></div>
 <header class="glass" id="hd" hidden><button class="ib" id="mb" aria-label="Menu">☰</button><b>Budget Planner</b></header>
 <main id="view"></main>
-<div id="scrim"></div><aside id="drawer" class="glass"></aside><div id="esheet"></div><div id="toast"></div><div id="sch"></div>
+<div id="scrim"></div><aside id="drawer" class="glass"></aside><div id="rmenu" class="glass"></div><div id="esheet"></div><div id="toast"></div><div id="sch"></div>
 <div id="dk" hidden><div id="off">Offline – showing saved data, changes can't be saved</div>
 <div id="dscrim" data-a="sideclose"></div>
 <div id="app"><aside class="side glass"><div class="logo">👛 Budget Planner</div>
@@ -520,8 +526,23 @@ async function monthData(y,m){
 }
 
 /* ---------- views ---------- */
+/* ----- Back button / browser back: month page -> home (all months) -> exit ----- */
+let POP=false;
+function histMark(kind,m,y){
+  if(POP)return;
+  const st=history.state||{},ns=kind=='m'?{bp:1,v:'m',m,y}:{bp:1,v:'y',y};
+  try{if(kind=='m'&&st.v!='m')history.pushState(ns,'');else history.replaceState(ns,'')}catch(e){}
+}
+try{history.replaceState({bp:1,v:'y'},'')}catch(e){}
+addEventListener('popstate',async e=>{
+  if(!U||DESK)return;
+  const st=e.state||{};tog(false);closeRM();try{closeSheet()}catch(_){}
+  POP=true;
+  try{if(st.v=='m'){if(st.y)Y=st.y;SE=false;OPEN=false;await showMonth(st.m)}else await showYear()}
+  finally{POP=false}
+});
 async function showYear(){
-  M=null;
+  M=null;histMark('y',null,Y);
   const out={};for(let i=1;i<=12;i++)out[i]={salary:0,spent:0};
   const [ms,es]=await Promise.all([getDocs(query(col("months"),where("y","==",Y))),getDocs(query(col("entries"),where("y","==",Y)))]);
   ms.forEach(d=>{const x=d.data();out[x.m].salary=x.salary});
@@ -534,6 +555,18 @@ async function showYear(){
 
 /* ----- mobile: spending by day chart + full expense editor (same features as desktop mode) ----- */
 let ME=[];
+function closeRM(){const m=$('#rmenu');if(m&&m.classList.contains('on')){m.classList.remove('on');m.innerHTML=''}}
+function openRM(btn){
+  const m=$('#rmenu'),d=btn.dataset,was=m.classList.contains('on')&&m.dataset.id==d.id;closeRM();if(was)return;
+  const at=`data-id="${d.id}" data-amt="${d.amt}" data-acc="${d.acc}" data-to="${d.to}"`;
+  m.dataset.id=d.id;
+  m.innerHTML=`<button data-a="edit" ${at}>✏️ Edit</button><button data-a="dup" ${at}>📋 Duplicate</button><button class="dn" data-a="del" ${at}>🗑 Delete</button>`;
+  m.classList.add('on');
+  const r=btn.getBoundingClientRect(),h=m.offsetHeight,w=m.offsetWidth;
+  let top=r.bottom+4;if(top+h>innerHeight-8)top=Math.max(8,r.top-h-4);
+  m.style.top=top+'px';m.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';
+}
+addEventListener('scroll',closeRM,{passive:true,capture:true});
 function closeSheet(){const e=$('#esheet');e.classList.remove('on');e.innerHTML=''}
 function editSheet(id){const e=ME.find(x=>x.id==id);if(!e)return;const gs=L.map(g=>g.name);if(!gs.includes(e.grp))gs.push(e.grp);
   const grp=()=>L.find(x=>x.name==$('#me-g').value);
@@ -565,7 +598,7 @@ function dayChartHTML(entries,m){
   return `<div class="glass card"><h2>Spending by day</h2><div class="dyinfo" id="dyinfo" data-def="Highest: ${hi} ${MN[m-1].slice(0,3)} · ${fmt(daily[hi])}">Highest: ${hi} ${MN[m-1].slice(0,3)} · ${fmt(daily[hi])}</div>${svg}</div>`}
 
 async function showMonth(m){
-  M=m;const d=await monthData(Y,m);ME=d.entries;
+  M=m;histMark('m',m,Y);const d=await monthData(Y,m);ME=d.entries;
   const spent=d.entries.reduce((a,e)=>a+e.amount,0),sp=d.entries.reduce((a,e)=>a+(e.acc?0:e.amount),0),left=d.salary-sp,by={};
   d.entries.forEach(e=>(by[e.grp]=by[e.grp]||[]).push(e));
   const now=new Date(),dMin=`${Y}-${pad(m)}-01`,
@@ -582,7 +615,7 @@ async function showMonth(m){
    ?`<div class="glass card salcard${lp<20?' low':''}" style="--w:${lp.toFixed(1)}%">${lp>0?'<div class="fill"></div>':''}<button class="ib edit" data-a="sedit" aria-label="Edit salary">✎</button><div class="sl">${MN[m-1]} salary</div><div class="sv">Rs. ${fmt(d.salary)}</div><div class="sf">${lp<=0?'Fully spent':fmt(left)+' left · '+lp.toFixed(0)+'%'}</div></div>`
    :`<div class="glass card"><h2>Salary</h2><label>Salary for ${MN[m-1]} (Rs.)<input id="sal" type="number" inputmode="decimal" min="0" step="0.01" value="${d.salary||''}" placeholder="0.00"></label><button class="btn" data-a="sal">Save salary</button>${d.salary?'<button class="btn alt" data-a="scancel" style="margin-top:8px">Cancel</button>':''}</div>`;
   const rows=Object.keys(by).map(g=>`<div class="glass card ecard" style="--c:${colorOf(g)}"><div class="eh"><span><i></i><span>${esc(g)}</span></span><span>${fmt(by[g].reduce((a,e)=>a+e.amount,0))}</span></div>`+
-   by[g].map(e=>{const sub=[dLabel(e.date),esc(e.note||''),e.acc&&accName(e.acc)?'from '+accIcon(e.acc)+' '+esc(accName(e.acc)):''].filter(Boolean).join(' · ');return `<div class="er"><div data-a="edit" data-id="${e.id}" style="cursor:pointer">${esc(e.item)}${sub?`<small>${sub}</small>`:''}</div><button class="a" data-a="edit" data-id="${e.id}" data-amt="${e.amount}" data-acc="${e.acc||''}" data-to="${e.to||''}">${fmt(e.amount)}</button><button class="x" data-a="del" data-id="${e.id}" data-amt="${e.amount}" data-acc="${e.acc||''}" data-to="${e.to||''}" aria-label="Delete">✕</button></div>`}).join('')+`</div>`).join('');
+   by[g].map(e=>{const sub=[dLabel(e.date),esc(e.note||''),e.acc&&accName(e.acc)?'from '+accIcon(e.acc)+' '+esc(accName(e.acc)):''].filter(Boolean).join(' · ');return `<div class="er"><div>${esc(e.item)}${sub?`<small>${sub}</small>`:''}</div><span class="am">${fmt(e.amount)}</span><button class="mn" data-a="rm" data-id="${e.id}" data-amt="${e.amount}" data-acc="${e.acc||''}" data-to="${e.to||''}" aria-label="More options">⋮</button></div>`}).join('')+`</div>`).join('');
   $('#view').innerHTML=`<div class="bar"><button class="ib" data-a="m-" aria-label="Previous month">‹</button><h1>${MN[m-1]} ${Y}</h1><button class="ib" data-a="m+" aria-label="Next month">›</button></div>
   <button class="btn alt" data-a="year" style="margin-bottom:14px">All months</button>
   ${salHTML}
@@ -635,7 +668,9 @@ $('#mb').onclick=()=>{drawer();tog(true)};$('#scrim').onclick=closeDrawer;
 /* ---------- actions ---------- */
 document.addEventListener('click',async e=>{
   if(e.target.closest('#dk'))return;
+  if(!e.target.closest('#rmenu')&&!e.target.closest('[data-a="rm"]'))closeRM();
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,D=b.dataset;
+  if(b.closest('#rmenu'))closeRM();
   try{
   if(a=='login')return login();
   if(a=='desk'){b.setAttribute('aria-checked','true');setTimeout(()=>setDesk(true),220);return}
@@ -648,7 +683,7 @@ document.addEventListener('click',async e=>{
   if(a=='theme'){applyTheme(D.t);return drawer()}
   if(a=='logout'){tog(false);await signOut(auth);return}
   if(a=='y-'){Y--;return showYear()} if(a=='y+'){Y++;return showYear()}
-  if(a=='year')return showYear();
+  if(a=='year'){if(history.state&&history.state.v=='m')return history.back();return showYear()}
   if(a=='toggle'){OPEN=!OPEN;b.closest('.acc').classList.toggle('open',OPEN);b.setAttribute('aria-expanded',OPEN);return}
   if(a=='month'){SE=false;OPEN=false;return showMonth(+D.m)}
   if(a=='m-'||a=='m+'){let m=M+(a=='m+'?1:-1);if(m<1){m=12;Y--}if(m>12){m=1;Y++}SE=false;OPEN=false;return showMonth(m)}
@@ -670,6 +705,10 @@ document.addEventListener('click',async e=>{
     await accApply([[W&&W.id,-amount],[to,amount]]);
     toast('Expense added');await showMonth(M);$('#eg').value=grp;fillItems();$('#ew').value=wid;$('#ed').value=date;return}
   if(a=='dybar'){const i=$('#dyinfo');if(i)i.textContent=`${D.d} ${MN[M-1].slice(0,3)} · ${fmt(+D.v)}`;return}
+  if(a=='rm')return openRM(b);
+  if(a=='dup'){const o=ME.find(x=>x.id==D.id);if(!o)return;const A=ACC.find(x=>x.id==o.acc),oe=outErr(A,o.amount);if(oe)return toast(oe);
+    await addDoc(col("entries"),{y:o.y,m:o.m,grp:o.grp,item:o.item,amount:o.amount,date:o.date,note:o.note||'',ts:Date.now(),...(o.acc?{acc:o.acc}:{}),...(o.to?{to:o.to}:{})});
+    await accApply([[o.acc,-o.amount],[o.to,o.amount]]);toast('Duplicated');return showMonth(M)}
   if(a=='edit')return editSheet(D.id);
   if(a=='esclose')return closeSheet();
   if(a=='essave'){const amount=parseFloat($('#me-a').value),item=$('#me-i').value.trim(),date=$('#me-d').value;if(!item||!(amount>=0)||!date)return toast('Fill item, amount and date');
@@ -809,7 +848,7 @@ function listsModal(){modal(`<h2>Manage lists</h2><div style="color:var(--mute);
   ${isSav(g.name)?'<div class="empty">Items come from your bank accounts (🏦 Your savings).</div>':`<div class="chips">${g.items.map((it,ii)=>`<span class="chip">${esc(it)} <button class="x" data-a="di" data-g="${gi}" data-i="${ii}">✕</button></span>`).join('')||'<span class="empty">No items yet</span>'}</div>${loanCardsHTML(g.name)}
   <div class="add"><input placeholder="New item" data-in="${gi}"><button class="btn" data-a="ai" data-g="${gi}">Add</button></div>`}</div>`).join('')+
   `<div class="grp"><div class="top">New category</div><div class="add" style="margin-top:8px"><input type="color" class="cc" id="ngc" value="${CC.find(c=>!S.L.some(g=>g.color==c))||CC[S.L.length%CC.length]}"><input id="ng" placeholder="e.g. Insurance"><button class="btn" data-a="ag">Add</button></div></div><button class="btn alt full" data-a="mclose">Close</button>`)}
-async function goMonth(m,y=S.Y){S.SE=false;S.q='';S.cat='';S.M=m;if(y!=S.Y){S.Y=y;S.ld=true;render();await refresh(true)}else render()}
+async function goMonth(m,y=S.Y){histMark('m',m,y);S.SE=false;S.q='';S.cat='';S.M=m;if(y!=S.Y){S.Y=y;S.ld=true;render();await refresh(true)}else render()}
 
 /* ----- events ----- */
 /* side panel: slides in/out with the ☰ button (open by default only on wide screens) */
@@ -821,6 +860,11 @@ let wasWide=wide();
 addEventListener('resize',()=>{if(wide()!=wasWide){wasWide=wide();if(document.body.classList.contains('desk'))sideInit()}});
 const root=$('#dk');
 $('#dscrim').addEventListener('click',()=>sideTog(false));
+addEventListener('popstate',e=>{
+  if(!document.body.classList.contains('desk'))return;
+  const st=e.state||{};S.SE=false;S.q='';S.cat='';S.M=st.v=='m'?st.m:null;
+  if(st.y&&st.y!=S.Y){S.Y=st.y;S.ld=true;render();refresh(true)}else render();
+});
 root.addEventListener('click',async ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,D=b.dataset;
   if(a=='side')return sideTog();
   if(a=='sideclose')return sideTog(false);
@@ -833,8 +877,8 @@ root.addEventListener('click',async ev=>{const b=ev.target.closest('[data-a]');i
   if(a=='refresh'){toast('Refreshing…');return refresh(true)}
   if(a=='tomobile'){b.setAttribute('aria-checked','false');setTimeout(()=>setDesk(false),200);return}
   if(a=='logout'){if(await ask('Log out of Budget Planner?','Log out'))await signOut(auth);return}
-  if(a=='y-'||a=='y+'){S.Y+=a=='y+'?1:-1;S.M=null;S.SE=false;S.ld=true;render();return refresh(true)}
-  if(a=='year'){S.M=null;S.SE=false;return render()}
+  if(a=='y-'||a=='y+'){S.Y+=a=='y+'?1:-1;S.M=null;histMark('y',null,S.Y);S.SE=false;S.ld=true;render();return refresh(true)}
+  if(a=='year'){if(history.state&&history.state.v=='m')return history.back();S.M=null;S.SE=false;return render()}
   if(a=='month')return goMonth(+D.m);
   if(a=='m-'||a=='m+'){let m=S.M+(a=='m+'?1:-1),y=S.Y;if(m<1){m=12;y--}if(m>12){m=1;y++}return goMonth(m,y)}
   if(a=='lists')return listsModal();
@@ -875,7 +919,7 @@ root.addEventListener('change',async ev=>{const t=ev.target;
   if(t.id=='eg')fillItems();if(t.id=='ei')$d('#ec').hidden=t.value!='__c';if(t.id=='me-g')fillDl();if(t.id=='fc'){S.cat=t.value;$d('#tb').innerHTML=rowsHTML()}});
 root.addEventListener('input',ev=>{if(ev.target.id=='q'){S.q=ev.target.value;$d('#tb').innerHTML=rowsHTML()}});
 document.addEventListener('keydown',e=>{if(!isDesk())return;const typing=/INPUT|SELECT|TEXTAREA/.test(e.target.tagName),open=$d('#modal').classList.contains('on');
-  if(e.key=='Escape'){if(open)closeModal();else if(S.M){S.M=null;render()}return}
+  if(e.key=='Escape'){if(open)closeModal();else if(S.M){if(history.state&&history.state.v=='m')history.back();else{S.M=null;render()}}return}
   if(e.key=='Enter'&&typing){
     if(e.target.closest('#addf')){e.preventDefault();$d('[data-a=add]').click();return}
     if(e.target.id=='sal'){$d('[data-a=sal]').click();return}
@@ -888,7 +932,7 @@ setInterval(()=>{if(isDesk()&&!document.hidden)refresh()},90000);
 
 return{
   refresh:()=>refresh(true),
-  show(){sideInit();S.ld=true;S.SE=false;S.q='';S.cat='';render();return refresh(true)},
+  show(){histMark('y',null,S.Y);sideInit();S.ld=true;S.SE=false;S.q='';S.cat='';render();return refresh(true)},
   hide(){document.body.classList.remove('sideopen','sidepush');$d('#modal').classList.remove('on');$d('#modal').innerHTML='';if(ASK){ASK(false);ASK=null}$d('#dview').innerHTML='';setOff(false)}
 };
 })();
