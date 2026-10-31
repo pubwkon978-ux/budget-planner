@@ -123,6 +123,7 @@ option{background:var(--optbg);color:var(--ink)}
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:9}
 #drawer{position:fixed;left:0;top:0;bottom:0;width:min(340px,90vw);z-index:10;transform:translateX(-102%);transition:transform .22s;overflow:auto;padding:calc(16px + env(safe-area-inset-top)) 16px 24px;border-radius:0 22px 22px 0;background:var(--drawer)}
 body.open #drawer{transform:none}body.open #scrim{display:block}
+#drawer .lo{position:sticky;bottom:0;margin:16px -16px -24px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--drawer);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid rgba(128,128,128,.25)}
 .grp{border:1px solid var(--line);border-radius:16px;padding:12px;margin:12px 0;background:var(--grp)}
 .top{display:flex;justify-content:space-between;align-items:center;font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -563,14 +564,14 @@ function drawer(){
   <button class="btn alt" data-a="accs" style="margin:0 0 12px">🏦 Your savings</button>
   <button class="btn alt" data-a="guide" style="margin:0 0 12px">📖 How to use</button>
   ${GETAPP?'<button class="btn alt" data-a="getapp" style="margin:0 0 12px">📲 Get app</button>':''}
-  <button class="btn pink" data-a="logout">Log out</button>
   <div class="th">${THEMES.map(t=>`<button data-a="theme" data-t="${t[0]}" class="${document.documentElement.dataset.theme==t[0]?'on':''}"><i style="background:${t[2]}"></i>${t[1]}</button>`).join('')}</div>
   <div style="color:var(--mute);font-size:13px;margin-top:12px">These feed the dropdowns when you add an expense.</div>`+
   L.map((g,gi)=>`<div class="gacc${OG.has(g.name)?' open':''}" data-g="${gi}"><button class="gb" style="--c:${colorOf(g.name)}" data-a="tg" data-g="${gi}" aria-expanded="${OG.has(g.name)}"><span>${esc(g.name)}</span><i>▾</i></button><div class="gbody"><div class="gin"><div class="grp">
    <div class="top"><label class="crow"><input type="color" class="cc" data-g="${gi}" value="${colorOf(g.name)}" aria-label="Category colour">Colour</label><button class="x" data-a="dg" data-g="${gi}">Delete</button></div>
    ${isSav(g.name)?'<div class="empty">Items come from your bank accounts (🏦 Your savings).</div>':`<div class="chips">${g.items.map((it,ii)=>`<span class="chip">${esc(it)} <button class="x" data-a="di" data-g="${gi}" data-i="${ii}" aria-label="Remove">✕</button></span>`).join('')||'<span class="empty">No items yet</span>'}</div>${loanCardsHTML(g.name)}
    <div class="add"><input placeholder="New item" data-in="${gi}"><button class="btn" data-a="ai" data-g="${gi}">Add</button></div>`}</div></div></div></div>`).join('')+
-  `<div class="grp"><div class="top">New category</div><div class="add" style="margin-top:8px;align-items:center"><input type="color" class="cc" id="ngc" value="${CC.find(c=>!L.some(g=>g.color==c))||CC[L.length%CC.length]}" aria-label="Colour"><input id="ng" placeholder="e.g. Insurance"><button class="btn" data-a="ag">Add</button></div></div>`;
+  `<div class="grp"><div class="top">New category</div><div class="add" style="margin-top:8px;align-items:center"><input type="color" class="cc" id="ngc" value="${CC.find(c=>!L.some(g=>g.color==c))||CC[L.length%CC.length]}" aria-label="Colour"><input id="ng" placeholder="e.g. Insurance"><button class="btn" data-a="ag">Add</button></div></div>`+
+  `<div class="lo"><button class="btn pink" data-a="logout">Log out</button></div>`;
 }
 const tog=o=>document.body.classList.toggle('open',o);
 function closeDrawer(){tog(false);if(M)showMonth(M)}
