@@ -431,15 +431,15 @@ async function checkUpdate(){
   try{
     const r=await withTimeout(fetch(`https://api.github.com/repos/${B.repo}/releases/tags/apk`,{headers:{Accept:'application/vnd.github+json'}}),8000);
     if(!r.ok)return;const j=await r.json();
-    const n=+((/Build #(\d+)/.exec(j.body||'')||[])[1]||0),a=(j.assets||[]).find(x=>x.name=='web-bundle.zip');
-    if(n>B.n&&a){UPD={n,url:a.browser_download_url};showUpd()}
+    const n=+((/Build #(\d+)/.exec(j.body||'')||[])[1]||0),sum=((/sha256:([0-9a-f]{64})/i.exec(j.body||'')||[])[1]||'').toLowerCase(),a=(j.assets||[]).find(x=>x.name=='web-bundle.zip');
+    if(n>B.n&&a&&sum){UPD={n,sum,url:a.browser_download_url};showUpd()}
   }catch(e){}
 }
 async function doUpdate(){
   if(!UPD||updating)return;updating=true;toast('Downloading update…');
   try{
     const CU=window.__NATIVE__.updater;
-    const b=await CU.download({url:UPD.url,version:String(UPD.n)});
+    const b=await CU.download({url:UPD.url,version:'1.0.'+UPD.n,checksum:UPD.sum});
     toast('Installing update…');
     try{await withTimeout(waitForPendingWrites(fs),4000)}catch(e){}
     await CU.set({id:b.id}); // reloads the app with the new version
