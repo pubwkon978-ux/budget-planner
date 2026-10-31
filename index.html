@@ -567,6 +567,19 @@ function openRM(btn){
   m.style.top=top+'px';m.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';
 }
 addEventListener('scroll',closeRM,{passive:true,capture:true});
+/* Android back button (Capacitor needs this handler, otherwise Android closes the app straight away) */
+if(NATIVE&&window.__NATIVE__.app){
+  window.__NATIVE__.app.addListener('backButton',({canGoBack})=>{
+    const on=id=>{const e=document.getElementById(id);return e&&e.classList.contains('on')};
+    if(document.body.classList.contains('open'))return tog(false);
+    if(on('rmenu'))return closeRM();
+    if(on('esheet'))return closeSheet();
+    if(on('sch'))return closeSched();
+    if(history.state&&history.state.v=='m')return history.back();
+    if(canGoBack)return history.back();
+    window.__NATIVE__.app.exitApp();
+  });
+}
 function closeSheet(){const e=$('#esheet');e.classList.remove('on');e.innerHTML=''}
 function editSheet(id){const e=ME.find(x=>x.id==id);if(!e)return;const gs=L.map(g=>g.name);if(!gs.includes(e.grp))gs.push(e.grp);
   const grp=()=>L.find(x=>x.name==$('#me-g').value);
