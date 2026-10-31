@@ -448,7 +448,13 @@ async function doUpdate(){
     toast('Installing update…');
     try{await withTimeout(waitForPendingWrites(fs),4000)}catch(e){}
     await CU.set({id:b.id}); // reloads the app with the new version
-  }catch(e){updating=false;toast('Update failed: '+(e&&e.message||e))}
+  }catch(e){
+    updating=false;console.warn('live update failed',e);
+    toast('Update failed: '+(e&&e.message||e));
+    // fallback: hand the full APK to the phone's browser (installs over the old app, data is kept)
+    const B=window.__NATIVE__.build;
+    setTimeout(()=>{if(B&&B.repo&&confirm('Live update failed.\nDownload the new APK instead?'))location.href=`https://github.com/${B.repo}/releases/download/apk/budget-planner.apk`},1800);
+  }
 }
 const GETAPP=!NATIVE&&!IOS;
 if(!GETAPP)document.querySelectorAll('.getapp').forEach(e=>e.remove());
