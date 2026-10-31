@@ -114,6 +114,14 @@ option{background:var(--optbg);color:var(--ink)}
 .er{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line2)}
 .er div{flex:1;min-width:0}.er small{display:block;color:var(--mute)}
 .er .a{font-weight:600;background:none;border:0;padding:4px}
+.dchart{width:100%;height:auto;display:block}.dgl{stroke:var(--line2);stroke-width:1}.dtx{fill:var(--mute);font-size:9px}
+.dbar{fill:#5ab0ff;transform-box:fill-box;transform-origin:50% 100%;animation:grow .5s cubic-bezier(.2,.8,.2,1) both}.dbar.td{fill:var(--p1,#ff6fb5)}
+.dyinfo{font-size:13px;color:var(--mute);margin:-4px 0 6px}
+#esheet{display:none;position:fixed;inset:0;z-index:45;align-items:flex-end}#esheet.on{display:flex}
+.es-back{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.es-box{position:relative;width:100%;max-height:92vh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;animation:esup .22s ease}
+.es-box h2{margin:0 0 12px;font-size:18px}.es-box .row{display:flex;gap:10px;margin-top:6px}
+@keyframes esup{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 .x{background:none;border:0;color:var(--mute);font-size:17px;padding:4px 8px}
 .empty{color:var(--mute);padding:8px 0}
 #login{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
@@ -343,7 +351,7 @@ html.desk,html.desk body{overflow-x:auto}
 <div class="bg"><i></i><i></i><i></i><i></i></div>
 <header class="glass" id="hd" hidden><button class="ib" id="mb" aria-label="Menu">☰</button><b>Budget Planner</b></header>
 <main id="view"></main>
-<div id="scrim"></div><aside id="drawer" class="glass"></aside><div id="toast"></div><div id="sch"></div>
+<div id="scrim"></div><aside id="drawer" class="glass"></aside><div id="esheet"></div><div id="toast"></div><div id="sch"></div>
 <div id="dk" hidden><div id="off">Offline – showing saved data, changes can't be saved</div>
 <div id="dscrim" data-a="sideclose"></div>
 <div id="app"><aside class="side glass"><div class="logo">👛 Budget Planner</div>
@@ -524,8 +532,40 @@ async function showYear(){
     return `<button class="glass mt${cur?' cur':''}" style="--c:${COL[i]}" data-a="month" data-m="${i+1}"><b>${n}</b><span class="sal">${s.salary?'Rs. '+fmt(s.salary):'No salary yet'}</span><i class="pb"><u class="${raw>100?'over':''}" style="width:${Math.min(100,raw)}%"></u></i><small>Spent ${fmt(s.spent)}</small><small>Left ${fmt(s.salary-s.spent)}</small></button>`}).join('')+'</div>';
 }
 
+/* ----- mobile: spending by day chart + full expense editor (same features as desktop mode) ----- */
+let ME=[];
+function closeSheet(){const e=$('#esheet');e.classList.remove('on');e.innerHTML=''}
+function editSheet(id){const e=ME.find(x=>x.id==id);if(!e)return;const gs=L.map(g=>g.name);if(!gs.includes(e.grp))gs.push(e.grp);
+  const grp=()=>L.find(x=>x.name==$('#me-g').value);
+  $('#esheet').innerHTML=`<div class="es-back" data-a="esclose"></div><div class="es-box glass"><h2>Edit expense</h2>
+   <label>Category<select id="me-g">${gs.map(g=>`<option${g==e.grp?' selected':''}>${esc(g)}</option>`).join('')}</select></label>
+   <label>Item<input id="me-i" list="me-dl" value="${esc(e.item)}"${e.to?' disabled':''}></label><datalist id="me-dl"></datalist>
+   <label>Amount (Rs.)<input id="me-a" type="number" inputmode="decimal" min="0" step="0.01" value="${e.amount}"></label>
+   <label>Date<input id="me-d" type="date" value="${esc(e.date)}"></label>
+   <label>Note<input id="me-n" value="${esc(e.note||'')}"></label>
+   <div class="row"><button class="btn alt" data-a="esclose">Cancel</button><button class="btn" data-a="essave" data-id="${id}">Save</button></div></div>`;
+  const fill=()=>{const g=grp();$('#me-dl').innerHTML=((g&&g.items)||[]).map(i=>`<option value="${esc(i)}">`).join('')};
+  fill();$('#me-g').addEventListener('change',fill);$('#esheet').classList.add('on')}
+const dyShort=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(n>=1e4?0:1).replace(/\.0$/,'')+'k':String(Math.round(n));
+const dyNice=v=>{if(v<=0)return 1;const p=10**Math.floor(Math.log10(v)),f=v/p;return(f<=1?1:f<=2?2:f<=4?4:f<=8?8:10)*p};
+function dayChartHTML(entries,m){
+  const days=new Date(Y,m,0).getDate(),daily=Array(days+1).fill(0);
+  entries.forEach(e=>{const d=+(e.date||'').split('-')[2];if(d>=1&&d<=days)daily[d]+=e.amount});
+  const tot=daily.reduce((a,b)=>a+b,0);if(tot<=0)return'';
+  const W=340,H=170,Lm=34,R=6,T=14,B=24,iw=W-Lm-R,ih=H-T-B,mx=dyNice(Math.max(...daily)),step=iw/days,bw=Math.max(3,step*.68);
+  const now=new Date(),today=(now.getFullYear()==Y&&now.getMonth()+1==m)?now.getDate():0;
+  let hi=1;for(let d=1;d<=days;d++)if(daily[d]>daily[hi])hi=d;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" class="dchart">`;
+  for(let i=0;i<=3;i++){const y=T+ih-ih*i/3;svg+=`<line x1="${Lm}" x2="${W-R}" y1="${y}" y2="${y}" class="dgl"/><text x="${Lm-5}" y="${y+3}" text-anchor="end" class="dtx">${dyShort(mx*i/3)}</text>`}
+  for(let d=1;d<=days;d++){const v=daily[d],h=v/mx*ih,x=Lm+step*(d-1)+(step-bw)/2,y=T+ih-h;
+    svg+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${v>0?Math.max(h,2).toFixed(1):0}" rx="${Math.min(3,bw/2).toFixed(1)}" class="dbar${d==today?' td':''}"/>`;
+    if(d==1||d%5==0)svg+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle" class="dtx">${d}</text>`;
+    svg+=`<rect x="${(Lm+step*(d-1)).toFixed(1)}" y="${T}" width="${step.toFixed(1)}" height="${ih+B}" fill="transparent" data-a="dybar" data-d="${d}" data-v="${v}"/>`}
+  svg+='</svg>';
+  return `<div class="glass card"><h2>Spending by day</h2><div class="dyinfo" id="dyinfo" data-def="Highest: ${hi} ${MN[m-1].slice(0,3)} · ${fmt(daily[hi])}">Highest: ${hi} ${MN[m-1].slice(0,3)} · ${fmt(daily[hi])}</div>${svg}</div>`}
+
 async function showMonth(m){
-  M=m;const d=await monthData(Y,m);
+  M=m;const d=await monthData(Y,m);ME=d.entries;
   const spent=d.entries.reduce((a,e)=>a+e.amount,0),sp=d.entries.reduce((a,e)=>a+(e.acc?0:e.amount),0),left=d.salary-sp,by={};
   d.entries.forEach(e=>(by[e.grp]=by[e.grp]||[]).push(e));
   const now=new Date(),dMin=`${Y}-${pad(m)}-01`,
@@ -542,13 +582,14 @@ async function showMonth(m){
    ?`<div class="glass card salcard${lp<20?' low':''}" style="--w:${lp.toFixed(1)}%">${lp>0?'<div class="fill"></div>':''}<button class="ib edit" data-a="sedit" aria-label="Edit salary">✎</button><div class="sl">${MN[m-1]} salary</div><div class="sv">Rs. ${fmt(d.salary)}</div><div class="sf">${lp<=0?'Fully spent':fmt(left)+' left · '+lp.toFixed(0)+'%'}</div></div>`
    :`<div class="glass card"><h2>Salary</h2><label>Salary for ${MN[m-1]} (Rs.)<input id="sal" type="number" inputmode="decimal" min="0" step="0.01" value="${d.salary||''}" placeholder="0.00"></label><button class="btn" data-a="sal">Save salary</button>${d.salary?'<button class="btn alt" data-a="scancel" style="margin-top:8px">Cancel</button>':''}</div>`;
   const rows=Object.keys(by).map(g=>`<div class="glass card ecard" style="--c:${colorOf(g)}"><div class="eh"><span><i></i><span>${esc(g)}</span></span><span>${fmt(by[g].reduce((a,e)=>a+e.amount,0))}</span></div>`+
-   by[g].map(e=>{const sub=[dLabel(e.date),esc(e.note||''),e.acc&&accName(e.acc)?'from '+accIcon(e.acc)+' '+esc(accName(e.acc)):''].filter(Boolean).join(' · ');return `<div class="er"><div>${esc(e.item)}${sub?`<small>${sub}</small>`:''}</div><button class="a" data-a="edit" data-id="${e.id}" data-amt="${e.amount}" data-acc="${e.acc||''}" data-to="${e.to||''}">${fmt(e.amount)}</button><button class="x" data-a="del" data-id="${e.id}" data-amt="${e.amount}" data-acc="${e.acc||''}" data-to="${e.to||''}" aria-label="Delete">✕</button></div>`}).join('')+`</div>`).join('');
+   by[g].map(e=>{const sub=[dLabel(e.date),esc(e.note||''),e.acc&&accName(e.acc)?'from '+accIcon(e.acc)+' '+esc(accName(e.acc)):''].filter(Boolean).join(' · ');return `<div class="er"><div data-a="edit" data-id="${e.id}" style="cursor:pointer">${esc(e.item)}${sub?`<small>${sub}</small>`:''}</div><button class="a" data-a="edit" data-id="${e.id}" data-amt="${e.amount}" data-acc="${e.acc||''}" data-to="${e.to||''}">${fmt(e.amount)}</button><button class="x" data-a="del" data-id="${e.id}" data-amt="${e.amount}" data-acc="${e.acc||''}" data-to="${e.to||''}" aria-label="Delete">✕</button></div>`}).join('')+`</div>`).join('');
   $('#view').innerHTML=`<div class="bar"><button class="ib" data-a="m-" aria-label="Previous month">‹</button><h1>${MN[m-1]} ${Y}</h1><button class="ib" data-a="m+" aria-label="Next month">›</button></div>
   <button class="btn alt" data-a="year" style="margin-bottom:14px">All months</button>
   ${salHTML}
   ${accCardsHTML()}
   <div class="sum"><div class="glass"><span>Spent</span><b>${fmt(sp)}</b></div><div class="glass"><span>Left</span><b class="${left<0?'neg':'pos'}">${fmt(left)}</b></div></div>
   ${chartHTML}
+  ${dayChartHTML(d.entries,m)}
   <div class="acc${OPEN?' open':''}"><button class="glass accb" data-a="toggle" aria-expanded="${OPEN}"><span>＋ Add expense</span><i>▾</i></button><div class="accbody"><div class="accin"><div class="glass card">
    <label>Category<select id="eg">${L.map(g=>`<option>${esc(g.name)}</option>`).join('')}</select></label>
    <label>Item<select id="ei"></select></label>
@@ -573,7 +614,7 @@ const OG=new Set();
 function drawer(){
   $('#drawer').innerHTML=`<div class="dh"><h2>Manage lists</h2><button class="ib back" data-a="back" aria-label="Close menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 5l-7 7 7 7"/></svg></button></div><div class="user">${esc(U?.email||'')}</div>
   ${UPD?'<button class="btn pink" data-a="update" style="margin:0 0 12px">🆕 New update available</button>':''}
-  <button class="swrow" data-a="desk" role="switch" aria-checked="false"><span>🖥 Desktop view</span><i class="sw"></i></button>
+  ${NATIVE?'':'<button class="swrow" data-a="desk" role="switch" aria-checked="false"><span>🖥 Desktop view</span><i class="sw"></i></button>'}
   <button class="btn alt" data-a="sched" style="margin:0 0 12px">📅 Schedule your expense</button>
   <button class="btn alt" data-a="accs" style="margin:0 0 12px">🏦 Your savings</button>
   <button class="btn alt" data-a="guide" style="margin:0 0 12px">📖 How to use</button>
@@ -628,10 +669,14 @@ document.addEventListener('click',async e=>{
     await addDoc(col("entries"),{y:Y,m:M,grp,item,amount,date,note:$('#en').value,ts:Date.now(),...(W?{acc:W.id}:{}),...(to?{to}:{})});
     await accApply([[W&&W.id,-amount],[to,amount]]);
     toast('Expense added');await showMonth(M);$('#eg').value=grp;fillItems();$('#ew').value=wid;$('#ed').value=date;return}
-  if(a=='edit'){const v=prompt('New amount',D.amt);if(v===null)return;const n=parseFloat(v);if(!(n>=0))return toast('Enter a valid amount');
-    const A=ACC.find(x=>x.id==D.acc),T=ACC.find(x=>x.id==D.to),diff=n-(+D.amt||0);
+  if(a=='dybar'){const i=$('#dyinfo');if(i)i.textContent=`${D.d} ${MN[M-1].slice(0,3)} · ${fmt(+D.v)}`;return}
+  if(a=='edit')return editSheet(D.id);
+  if(a=='esclose')return closeSheet();
+  if(a=='essave'){const amount=parseFloat($('#me-a').value),item=$('#me-i').value.trim(),date=$('#me-d').value;if(!item||!(amount>=0)||!date)return toast('Fill item, amount and date');
+    const f={grp:$('#me-g').value,item,amount,date,note:$('#me-n').value,y:+date.slice(0,4),m:+date.slice(5,7)};
+    const old=ME.find(x=>x.id==D.id),A=old&&ACC.find(x=>x.id==old.acc),T=old&&ACC.find(x=>x.id==old.to),diff=old?amount-old.amount:0;
     {const m=outErr(A,diff)||inErr(T,diff);if(m)return toast(m)}
-    await updateDoc(ref("entries",D.id),{amount:n});await accApply([[D.acc,-diff],[D.to,diff]]);return showMonth(M)}
+    closeSheet();await updateDoc(ref("entries",D.id),f);if(old)await accApply([[old.acc,-diff],[old.to,diff]]);toast('Saved');return showMonth(M)}
   if(a=='del'){const amt=+D.amt||0,T=ACC.find(x=>x.id==D.to);{const m=T&&inErr(T,-amt);if(m)return toast(m+' to remove this deposit')}
     if(!confirm('Delete this expense?'))return;await deleteDoc(ref("entries",D.id));await accApply([[D.acc,amt],[D.to,-amt]]);return showMonth(M)}
   if(a=='tg'){const n=L[D.g].name,w=b.closest('.gacc'),o=!OG.has(n);o?OG.add(n):OG.delete(n);w.classList.toggle('open',o);b.setAttribute('aria-expanded',o);return}
@@ -652,7 +697,7 @@ document.addEventListener('keydown',e=>{
 /* ---------- desktop mode ---------- */
 const isDesk=()=>document.body.classList.contains('desk');
 const vpEl=$('#vp'),VPM=vpEl.content;
-let DESK=false;try{DESK=localStorage.getItem("bp-view")=="desktop"}catch(e){}
+let DESK=false;try{DESK=!NATIVE&&localStorage.getItem("bp-view")=="desktop"}catch(e){}
 function applyMode(){const on=DESK&&!!U;document.documentElement.classList.toggle('desk',on);document.body.classList.toggle('desk',on);$('#dk').hidden=!on;vpEl.content=on?'width=1200,viewport-fit=cover':VPM}
 function setDesk(v){DESK=v;try{localStorage.setItem("bp-view",v?"desktop":"mobile")}catch(e){}tog(false);
   if(v){applyMode();$('#view').innerHTML='';DK.show()}
