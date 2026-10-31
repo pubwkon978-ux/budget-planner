@@ -124,6 +124,7 @@ option{background:var(--optbg);color:var(--ink)}
 #drawer{position:fixed;left:0;top:0;bottom:0;width:min(340px,90vw);z-index:10;transform:translateX(-102%);transition:transform .22s;overflow:auto;padding:calc(16px + env(safe-area-inset-top)) 16px 24px;border-radius:0 22px 22px 0;background:var(--drawer)}
 body.open #drawer{transform:none}body.open #scrim{display:block}
 #drawer .lo{margin:18px 0 calc(8px + env(safe-area-inset-bottom))}
+.ver{margin-top:10px;text-align:center;font-size:12px;color:var(--mute,#999)}
 .grp{border:1px solid var(--line);border-radius:16px;padding:12px;margin:12px 0;background:var(--grp)}
 .top{display:flex;justify-content:space-between;align-items:center;font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -347,11 +348,11 @@ html.desk,html.desk body{overflow-x:auto}
 <div id="dscrim" data-a="sideclose"></div>
 <div id="app"><aside class="side glass"><div class="logo">👛 Budget Planner</div>
 <div class="yr"><button class="ib" data-a="y-" aria-label="Previous year">‹</button><b id="ylab"></b><button class="ib" data-a="y+" aria-label="Next year">›</button></div>
-<button class="nav" data-a="year" id="nv-home">🏠 All months</button><button class="nav" data-a="lists">⚙ Manage lists</button><button class="nav" data-a="sched">📅 Schedule your expense</button><button class="nav" data-a="accs">🏦 Your savings</button><button class="nav" data-a="guide">📖 How to use App</button><button class="nav getapp" data-a="getapp">📲 Get Andriod App</button><button class="nav updbtn" data-a="update" style="display:none">🆕 New update available</button>
+<button class="nav" data-a="year" id="nv-home">🏠 All months</button><button class="nav" data-a="lists">⚙ Manage lists</button><button class="nav" data-a="sched">📅 Schedule your expense</button><button class="nav" data-a="accs">🏦 Your savings</button><button class="nav" data-a="guide">📖 How to use</button><button class="nav getapp" data-a="getapp">📲 Get app</button><button class="nav updbtn" data-a="update" style="display:none">🆕 New update available</button>
 <button class="nav" data-a="refresh">⟳ Refresh</button><button class="nav" data-a="full">⛶ Full screen</button>
 <div class="th" id="th"></div>
 <button class="swrow" data-a="tomobile" role="switch" aria-checked="true"><span>🖥 Desktop view</span><i class="sw"></i></button>
-<div class="sp"></div><div class="user" id="user"></div><button class="btn pink" data-a="logout">Log out</button></aside>
+<div class="sp"></div><div class="user" id="user"></div><button class="btn pink" data-a="logout">Log out</button><div class="ver" id="dver"></div></aside>
 <div class="dmain" id="dview"></div></div>
 <div id="modal"></div></div>
 <script type="module">
@@ -414,7 +415,7 @@ async function warm(){
   try{await withTimeout(Promise.all([_getDocs(col("entries")),_getDocs(col("months")),_getDoc(ref("meta","lists"))]),25000)}catch(e){console.warn('cache warm-up',e)}
 }
 
-/* ---------- "Get Andriod App" (website only) ---------- */
+/* ---------- "Get app" (website only) ---------- */
 const APK_URL=""; // optional: put a full link here to override the automatic GitHub release link
 function apkLink(){
   if(APK_URL)return APK_URL;
@@ -428,6 +429,7 @@ function getApp(){
   toast('Downloading app…');
 }
 /* ---------- Live update (Android app only): new site version -> button in side panel -> app updates itself ---------- */
+const BN=NATIVE&&window.__NATIVE__.build&&window.__NATIVE__.build.n,VER=BN?`<div class="ver">App version 1.0.${BN}</div>`:'';
 let UPD=null,updating=false;
 function showUpd(){const b=document.querySelector('#dk .updbtn');if(b)b.style.display=UPD?'':'none';const m=$('#mb');if(m)m.classList.toggle('dot',!!UPD)}
 async function checkUpdate(){
@@ -457,6 +459,7 @@ async function doUpdate(){
   }
 }
 const GETAPP=!NATIVE&&!IOS;
+{const dv=document.getElementById('dver');if(dv)dv.textContent=BN?'App version 1.0.'+BN:''}
 if(!GETAPP)document.querySelectorAll('.getapp').forEach(e=>e.remove());
 
 /* ---------- auth ---------- */
@@ -478,7 +481,7 @@ async function login(){
 function showLogin(){
   $('#hd').hidden=true;
   $('#view').innerHTML=`<div id="login"><img src="icon-512.png" alt=""><div class="glass box"><h1 style="margin:0 0 6px">Budget Planner</h1><p style="color:var(--mute);margin:0 0 20px">Manage your salary and expenses, synced on all your devices.</p>
-  <button class="gbtn" data-a="login"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.1 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3-11.3-7.3l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.7-.4-4z"/></svg>Continue with Google</button><a href="guide.html" style="display:block;margin-top:16px;color:var(--ink);font-weight:600;text-decoration:underline">📖 How to use App this app</a></div></div>`;
+  <button class="gbtn" data-a="login"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.1 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3-11.3-7.3l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.7-.4-4z"/></svg>Continue with Google</button><a href="guide.html" style="display:block;margin-top:16px;color:var(--ink);font-weight:600;text-decoration:underline">📖 How to use this app</a></div></div>`;
 }
 onAuthStateChanged(auth,async u=>{
   U=u;
@@ -573,8 +576,8 @@ function drawer(){
   <button class="swrow" data-a="desk" role="switch" aria-checked="false"><span>🖥 Desktop view</span><i class="sw"></i></button>
   <button class="btn alt" data-a="sched" style="margin:0 0 12px">📅 Schedule your expense</button>
   <button class="btn alt" data-a="accs" style="margin:0 0 12px">🏦 Your savings</button>
-  <button class="btn alt" data-a="guide" style="margin:0 0 12px">📖 How to use App</button>
-  ${GETAPP?'<button class="btn alt" data-a="getapp" style="margin:0 0 12px">📲 Get Andriod App</button>':''}
+  <button class="btn alt" data-a="guide" style="margin:0 0 12px">📖 How to use</button>
+  ${GETAPP?'<button class="btn alt" data-a="getapp" style="margin:0 0 12px">📲 Get app</button>':''}
   <div class="th">${THEMES.map(t=>`<button data-a="theme" data-t="${t[0]}" class="${document.documentElement.dataset.theme==t[0]?'on':''}"><i style="background:${t[2]}"></i>${t[1]}</button>`).join('')}</div>
   <div style="color:var(--mute);font-size:13px;margin-top:12px">These feed the dropdowns when you add an expense.</div>`+
   L.map((g,gi)=>`<div class="gacc${OG.has(g.name)?' open':''}" data-g="${gi}"><button class="gb" style="--c:${colorOf(g.name)}" data-a="tg" data-g="${gi}" aria-expanded="${OG.has(g.name)}"><span>${esc(g.name)}</span><i>▾</i></button><div class="gbody"><div class="gin"><div class="grp">
@@ -582,7 +585,7 @@ function drawer(){
    ${isSav(g.name)?'<div class="empty">Items come from your bank accounts (🏦 Your savings).</div>':`<div class="chips">${g.items.map((it,ii)=>`<span class="chip">${esc(it)} <button class="x" data-a="di" data-g="${gi}" data-i="${ii}" aria-label="Remove">✕</button></span>`).join('')||'<span class="empty">No items yet</span>'}</div>${loanCardsHTML(g.name)}
    <div class="add"><input placeholder="New item" data-in="${gi}"><button class="btn" data-a="ai" data-g="${gi}">Add</button></div>`}</div></div></div></div>`).join('')+
   `<div class="grp"><div class="top">New category</div><div class="add" style="margin-top:8px;align-items:center"><input type="color" class="cc" id="ngc" value="${CC.find(c=>!L.some(g=>g.color==c))||CC[L.length%CC.length]}" aria-label="Colour"><input id="ng" placeholder="e.g. Insurance"><button class="btn" data-a="ag">Add</button></div></div>`+
-  `<div class="lo"><button class="btn pink" data-a="logout">Log out</button></div>`;
+  `<div class="lo"><button class="btn pink" data-a="logout">Log out</button>${VER}</div>`;
 }
 const tog=o=>document.body.classList.toggle('open',o);
 function closeDrawer(){tog(false);if(M)showMonth(M)}
